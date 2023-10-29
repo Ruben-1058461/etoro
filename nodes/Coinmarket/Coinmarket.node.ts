@@ -3,7 +3,10 @@ import {
 	INodeTypeDescription,
 	IExecuteFunctions,
 	ICredentialDataDecryptedObject,
+	INodeExecutionData,
 } from 'n8n-workflow';
+import axios from 'axios';
+
 
 export class Coinmarket implements INodeType {
 	description: INodeTypeDescription = {
@@ -46,79 +49,80 @@ export class Coinmarket implements INodeType {
 				noDataExpression: true,
 				displayOptions: {
 					show: {
-						resource: ['coinMarketInfo'],
+						resource: ['coinMarketInfo', 'latestQuotes'],
 					},
 				},
 				options: [
 					{
-						name: 'Get Coin Info',
-						value: 'getCoinInfo',
+						name: 'Get Latest Coin Info',
+						value: 'getLatestCoinInfo',
 						description: 'Get information about a specific cryptocurrency',
 					},
+					{
+						name: 'Get Latest Quotes',
+						value: 'getLatestQuotes',
+						description: 'Get the latest quotes for a specific cryptocurrency',
+					}
 				],
-				default: 'getCoinInfo',
+				default: 'getLatestCoinInfo',
 			},
 		],
 	};
 
-	async execute(this: IExecuteFunctions): Promise<any> {
-		const credentials = await this.getCredentials('CoinmarketApi') as ICredentialDataDecryptedObject;
+	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+		const items = this.getInputData();
+		console.log('Received input data:', items); // Log de input data van de node
 
-		if (!credentials) {
-			throw new Error('Credentials not set!');
-		}
+		if (this.getNodeParameter('operation', 0) === 'getLatestCoinInfo') {
+			const credentialData = await this.getCredentials('CoinmarketApi') as ICredentialDataDecryptedObject;
+			const apiKey = credentialData.apiKey;
 
-		try {
-			console.log('Requesting data from CoinMarketCap API...');
-			console.log('API Key:', credentials.apiKey);
+			// Define the API
+			const apiUrl = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest';
+			const start = 1;
+			const limit = 2;
+			const params = {
+				start,
+				limit,
+			};
 
-			const responseData = await this.helpers.request({
-				method: 'GET',
-				uri: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=1',
-				headers: {
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-					'X-CMC_PRO_API_KEY': credentials.apiKey as string,
-				},
-				auth: {
-					user: credentials.apiKey as string,
-					pass: credentials.apiSecret as string,
-				},
-				port: 443,
-			});
+			// Set up headers met api key
+			const headers = {
+				'X-CMC_PRO_API_KEY': apiKey,
+			};
 
-			// Log alle data
-			console.log('Response Data:', responseData);
+			console.log('API URL:', apiUrl); // Log de api url
+			console.log('API Parameters:', params); // Log de api parameters
+			console.log('API Headers:', headers); // Log de API headers
 
-			if (responseData && responseData.data && responseData.data.length > 0) {
-				// Pak de data van de eerste cryptocurrency
-				const firstCrypto = responseData.data[0];
+			try {
+				// hier maakt hij een api request
+				const response = await axios.get(apiUrl, { params, headers });
+				const data = response.data.data;
+				console.log('API Response Data:', data); // Log de api response data
 
-				if (firstCrypto) {
-					const name = firstCrypto.name;
-					const symbol = firstCrypto.symbol;
-					const priceUSD = firstCrypto.quote.USD;
+				// Pak de volgende data van de crypto af
+				const outputData = data.map((crypto: any) => {
+					const name = crypto.name;
+					const symbol = crypto.symbol;
+					const price = crypto.quote.USD.price;
+					console.log('Extracted Data:', { name, symbol, price }); // Log de extracted data
 
-					// Log alle extracted data
-					console.log('Name:', name);
-					console.log('Symbol:', symbol);
-					console.log('Price USD:', priceUSD);
+					return { name, symbol, price };
+				});
 
-					// Return de data
-					return {
-						name: name,
-						symbol: symbol,
-						priceUSD: priceUSD,
-						// Meer properties toevoegen nog
-					};
-				} else {
-					console.error('No data or empty data in the response.');
-					return null; // Return null of geef error
-				}
+				// Verstuur de data naar de n8n node
+				console.log('Sending Data to N8N:', outputData);
+				return [this.helpers.returnJsonArray(outputData)];
+
+			} catch (error) {
+				// Handle errors
+				console.error('CoinMarketCap API request failed:', error); // log error
+				throw new Error(`CoinMarketCap API request failed: ${error.message}`);
 			}
-		} catch (error) {
-			console.error('Error making the request:', error.message);
-			throw new Error(`Error making the request: ${error.message}`);
 		}
+
+		// @ts-ignore
+		return items;
 	}
 }

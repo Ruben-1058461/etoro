@@ -1,0 +1,128 @@
+{
+  "name": "Coinmarket",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "CoinName",
+              "value": "={{ $json.data[0].name }}"
+            },
+            {
+              "name": "CoinSymbol",
+              "value": "={{ $json.data[0].symbol }}"
+            },
+            {
+              "name": "CoinPrice",
+              "value": "={{ $json.data[0].quote.USD.price }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f7c89c76-9ef5-40e8-b9be-fd3ba7c8594e",
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "webhookUri": "https://discord.com/api/webhooks/1162001525359529984/zlbrpYmj3PcM9rjFpsbkwWVs6AhdqdaI0J7cd3LwCOXYYXCqvE-450BhIjxrH299R2dn",
+        "text": "={{ $json.name }} {{ $json.symbol }} {{ $json.price }}",
+        "options": {}
+      },
+      "id": "77b48602-98c0-455f-905e-cce0af647cf5",
+      "name": "Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [
+        1820,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "2e33f4ce-f1be-4ef5-886d-a76beb04b874",
+        "options": {}
+      },
+      "id": "d00f42bd-af17-46eb-b416-422ce624f96f",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        900,
+        400
+      ],
+      "webhookId": "f0e48a09-f3f5-4878-a609-eabeb9e283bb"
+    },
+    {
+      "parameters": {},
+      "id": "7fd3604b-856a-44ac-bb77-8a24ab01a15f",
+      "name": "Coinmarket",
+      "type": "CUSTOM.coinmarket",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        400
+      ],
+      "credentials": {
+        "CoinmarketApi": {
+          "id": "3DSDbOZj8HUPGBzN",
+          "name": "Coinmarket account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Coinmarket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coinmarket": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "62036beb-351b-4346-adc4-c8e35a5a87a4",
+  "id": "XHdVktKZys69lYUa",
+  "meta": {
+    "instanceId": "15234435e3563c6f486df4a52ed1e4374a9b0b4308a5b80eb3eeb4ea9041ccab"
+  },
+  "tags": []
+}

@@ -1,6 +1,5 @@
 import discord
 import responses
-import requests
 
 
 async def send_message(message, user_message, is_private, webhook_url):
@@ -12,7 +11,7 @@ async def send_message(message, user_message, is_private, webhook_url):
 
 
 def run_discord_bot():
-	token = 'MTE2MTI3MDU1NTA3NzUwOTIxMQ.GXNN33.KUrjOsielKYeS3An8U7uZEbV1ba07FAlPvZKFY'  # Bot token
+	token = ''  # Bot token
 	webhook_url = 'http://localhost:5678/webhook-test/2e33f4ce-f1be-4ef5-886d-a76beb04b874'  # Url van n8n
 
 	intents = discord.Intents.default()
