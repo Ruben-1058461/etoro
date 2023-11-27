@@ -20,7 +20,7 @@
 2. Voer de workflow uit.
 
 **Resultaten:**
-- De node zou een fout moeten genereren en de foutmelding moeten weergeven dat de CoinMarketCap API-aanvraag is mislukt vanwege een ongeldige API-sleutel.
+- De node zou een fout moeten genereren en de foutmelding moeten weergeven in de console dat de CoinMarketCap API-aanvraag is mislukt vanwege een ongeldige API-sleutel.
 
 ## Test 3: Aangepaste instellingen
 
